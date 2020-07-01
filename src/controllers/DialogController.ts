@@ -1,15 +1,21 @@
 import express from "express";
 import { DialogModel, MessageModel } from "../models";
+import socket from "socket.io";
 
 class DialogController {
-  index(req: express.Request, res: express.Response) {
-    const authorId = "5d1ba4777a5a9a1264ba240c";
+  io: socket.Server;
+
+  constructor(io: socket.Server) {
+    this.io = io;
+  }
+
+  index = (req: any, res: express.Response) => {
+    const authorId = req.user._id;
     var jauthorid = JSON.parse(authorId);
 
     DialogModel.find({ author: jauthorid })
       .populate(["author", "partner"])
       .exec(function (err, dialogs) {
-        console.log(err);
         if (err) {
           return res.status(404).json({
             message: "Dialogs not found",
@@ -17,9 +23,9 @@ class DialogController {
         }
         return res.json(dialogs);
       });
-  }
+    };
 
-  create(req: express.Request, res: express.Response) {
+    create = (req: express.Request, res: express.Response) => {
     const postData = {
       author: req.body.author,
       partner: req.body.partner,
@@ -47,9 +53,9 @@ class DialogController {
       .catch((reason) => {
         res.json(reason);
       });
-  }
+    };
 
-  delete(req: express.Request, res: express.Response) {
+    delete = (req: express.Request, res: express.Response) => {
     const id: string = req.params.id;
     DialogModel.findOneAndRemove({ _id: id })
       .then((dialog) => {
@@ -64,7 +70,7 @@ class DialogController {
           message: `Dialog not found`,
         });
       });
-  }
+    };
 }
 
 export default DialogController;
